@@ -51,7 +51,7 @@ This command will export the contents of the specified Notion database to a CSV 
 ## How to Get Notion API Token and Database ID
 
 ### API Token
-1. Go to Notion Integrations.
+1. Go to [Notion Integrations](https://www.notion.so/my-integrations).
 2. Create a new integration.
 3. Copy the "Internal Integration Token."
 
