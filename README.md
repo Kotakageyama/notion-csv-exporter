@@ -6,6 +6,8 @@ This is a simple tool to export data from a Notion database into a CSV file usin
 - Exports data from a specified Notion database to a CSV file.
 - Supports customization of Notion API tokens and database IDs via command line arguments.
 - Supports sorting by a specified key in ascending or descending order.
+- **Allows selecting specific columns to export** using a comma-separated list.
+- **Validates column names**, ensuring that only existing columns are included in the export.
 
 ## Requirements
 Before you start, make sure you have:
@@ -34,19 +36,38 @@ Make sure your `$GOBIN` is added to your system's `$PATH`, so you can run the to
 Once installed, you can use the tool from anywhere in your terminal:
 
 ```sh
-notion-csv-exporter -token={NOTION_API_TOKEN} -databaseID={NOTION_DATABASE_ID} [-sortKey={SORT_KEY}] [-order={ascending|descending}]
+notion-csv-exporter -token={NOTION_API_TOKEN} -databaseID={NOTION_DATABASE_ID} [-sortKey={SORT_KEY}] [-order={ascending|descending}] [-columns={COLUMN1,COLUMN2,...}]
 ```
 
-Replace `{NOTION_API_TOKEN}` with your Notion API token, `{NOTION_DATABASE_ID}` with your database ID, `{SORT_KEY}` with the key to sort by (optional), and `{ascending|descending}` with the sorting order (default is descending).
+Replace:
+- `{NOTION_API_TOKEN}` with your Notion API token.
+- `{NOTION_DATABASE_ID}` with your database ID.
+- `{SORT_KEY}` with the key to sort by (optional).
+- `{ascending|descending}` with the sorting order (default is descending).
+- `{COLUMN1,COLUMN2,...}` with a comma-separated list of column names to export (optional).
 
 ### Example
-Here’s an example command to export data:
+#### Export all columns
+```sh
+notion-csv-exporter -token=secret_abc12345 -databaseID=1234567890abcdef1234567890abcdef
+```
+This command exports all columns from the specified Notion database.
 
+#### Export specific columns
+```sh
+notion-csv-exporter -token=secret_abc12345 -databaseID=1234567890abcdef1234567890abcdef -columns=Name,Email,Status
+```
+This command exports only the `Name`, `Email`, and `Status` columns from the specified Notion database.
+
+#### Export with sorting
 ```sh
 notion-csv-exporter -token=secret_abc12345 -databaseID=1234567890abcdef1234567890abcdef -sortKey=Name -order=ascending
 ```
+This command sorts the exported data by the `Name` column in ascending order.
 
-This command will export the contents of the specified Notion database to a CSV file named `output.csv` in the current directory, sorted by the `Name` column in ascending order.
+## Column Selection and Validation
+- If `-columns` is specified, **only those columns will be included in the output**.
+- If a column name does not exist in the Notion database, **the export will fail with an error**.
 
 ## How to Get Notion API Token and Database ID
 

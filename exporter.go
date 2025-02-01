@@ -30,6 +30,7 @@ func NewExporterWithClient(client *notionapi.Client) Exporter {
 type Options struct {
 	SortKey string
 	Order   string
+	Columns []string
 }
 
 func (o Options) buildRequestParameter(cursor notionapi.Cursor) *notionapi.DatabaseQueryRequest {
@@ -59,10 +60,22 @@ func (e *Exporter) ExportDatabase(ctx context.Context, databaseID string, option
 		fmt.Println("Failed to get database:", err)
 		return err
 	}
-
-	header := make([]string, 0, len(database.Properties))
+	validColumns := make(map[string]bool)
 	for name, propertyConfig := range database.Properties {
 		if EnableDownloadPropertyConfig(propertyConfig) {
+			validColumns[name] = true
+		}
+	}
+	var header []string
+	if len(options.Columns) > 0 {
+		for _, col := range options.Columns {
+			if !validColumns[col] {
+				return fmt.Errorf("invalid column specified: %s", col)
+			}
+		}
+		header = options.Columns
+	} else {
+		for name := range validColumns {
 			header = append(header, name)
 		}
 	}

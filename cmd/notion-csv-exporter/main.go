@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strings"
 
 	exporter "github.com/yudppp/notion-csv-exporter"
 )
@@ -14,6 +15,7 @@ func main() {
 	databaseID := flag.String("databaseID", "", "Database ID for the operation")
 	sortKey := flag.String("sortKey", "", "Key to sort the database entries")
 	order := flag.String("order", "descending", "Order to sort the entries (ascending or descending)")
+	columns := flag.String("columns", "", "Comma-separated list of columns to include")
 
 	flag.Parse()
 
@@ -28,6 +30,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	var columnList []string
+	if *columns != "" {
+		columnList = strings.Split(*columns, ",")
+	}
+
 	client := exporter.NewExporter(*token)
 	err := client.ExportDatabase(
 		context.Background(),
@@ -35,6 +42,7 @@ func main() {
 		exporter.Options{
 			SortKey: *sortKey,
 			Order:   *order,
+			Columns: columnList,
 		},
 		os.Stdout,
 	)
