@@ -12,25 +12,30 @@ import (
 )
 
 type Exporter struct {
-	client notionapi.DatabaseService
+	client     notionapi.DatabaseService
+	pageClient notionapi.PageService
 }
 
 func NewExporter(token string) Exporter {
+	client := notionapi.NewClient(notionapi.Token(token))
 	return Exporter{
-		client: notionapi.NewClient(notionapi.Token(token)).Database,
+		client:     client.Database,
+		pageClient: client.Page,
 	}
 }
 
 func NewExporterWithClient(client *notionapi.Client) Exporter {
 	return Exporter{
-		client: client.Database,
+		client:     client.Database,
+		pageClient: client.Page,
 	}
 }
 
 type Options struct {
-	SortKey string
-	Order   string
-	Columns []string
+	SortKey            string
+	Order              string
+	Columns            []string
+	FetchRelationNames bool
 }
 
 func (o Options) buildRequestParameter(cursor notionapi.Cursor) *notionapi.DatabaseQueryRequest {
@@ -95,7 +100,7 @@ func (e *Exporter) ExportDatabase(ctx context.Context, databaseID string, option
 				if !ok {
 					return err
 				}
-				value, err := GetStringValueByProperty(v)
+				value, err := e.GetStringValueByProperty(ctx, v, options.FetchRelationNames)
 				if err != nil {
 					return err
 				}
@@ -111,7 +116,7 @@ func (e *Exporter) ExportDatabase(ctx context.Context, databaseID string, option
 	}
 }
 
-func GetStringValueByProperty(property notionapi.Property) (string, error) {
+func (e *Exporter) GetStringValueByProperty(ctx context.Context, property notionapi.Property, fetchRelationNames bool) (string, error) {
 	switch property.GetType() {
 	case notionapi.PropertyTypeTitle:
 		titleProperty := property.(*notionapi.TitleProperty)
@@ -167,9 +172,22 @@ func GetStringValueByProperty(property notionapi.Property) (string, error) {
 		}
 	case notionapi.PropertyTypeRelation:
 		relationProperty := property.(*notionapi.RelationProperty)
-		return strings.Join(ExtractValues(relationProperty.Relation, func(v notionapi.Relation) string {
-			return v.ID.String()
-		}), ", "), nil
+		if !fetchRelationNames {
+			return strings.Join(ExtractValues(relationProperty.Relation, func(v notionapi.Relation) string {
+				return v.ID.String()
+			}), ", "), nil
+		}
+
+		var names []string
+		for _, relation := range relationProperty.Relation {
+			pageID := relation.ID.String()
+			pageName, err := e.getPageTitle(ctx, pageID)
+			if err != nil {
+				return "", err
+			}
+			names = append(names, pageName)
+		}
+		return strings.Join(names, ", "), nil
 	case notionapi.PropertyTypeRollup:
 		rollupProperty := property.(*notionapi.RollupProperty)
 		switch rollupProperty.Rollup.Type {
@@ -251,4 +269,23 @@ func ExtractValues[T any](elms []T, extractFunc func(val T) string) []string {
 		results[i] = extractFunc(v)
 	}
 	return results
+}
+
+func (e *Exporter) getPageTitle(ctx context.Context, pageID string) (string, error) {
+	page, err := e.pageClient.Get(ctx, notionapi.PageID(pageID))
+	if err != nil {
+		return "", err
+	}
+
+	for _, prop := range page.Properties {
+		if prop.GetType() == notionapi.PropertyTypeTitle {
+			titleProp := prop.(*notionapi.TitleProperty)
+			if len(titleProp.Title) > 0 {
+				return titleProp.Title[0].PlainText, nil
+			}
+			return "", nil
+		}
+	}
+
+	return pageID, nil
 }
