@@ -15,6 +15,7 @@ func main() {
 	databaseID := flag.String("databaseID", "", "Database ID for the operation")
 	sortKey := flag.String("sortKey", "", "Key to sort the database entries")
 	order := flag.String("order", "descending", "Order to sort the entries (ascending or descending)")
+	fetchRelationNames := flag.Bool("fetchRelationNames", false, "Fetch relation page names instead of page IDs")
 	columns := flag.String("columns", "", "Comma-separated list of columns to include")
 
 	flag.Parse()
@@ -40,9 +41,10 @@ func main() {
 		context.Background(),
 		*databaseID,
 		exporter.Options{
-			SortKey: *sortKey,
-			Order:   *order,
-			Columns: columnList,
+			SortKey:            *sortKey,
+			Order:              *order,
+			Columns:            columnList,
+			FetchRelationNames: *fetchRelationNames,
 		},
 		os.Stdout,
 	)

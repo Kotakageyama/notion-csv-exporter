@@ -8,6 +8,7 @@ This is a simple tool to export data from a Notion database into a CSV file usin
 - Supports sorting by a specified key in ascending or descending order.
 - **Allows selecting specific columns to export** using a comma-separated list.
 - **Validates column names**, ensuring that only existing columns are included in the export.
+- **Supports fetching relation page names** instead of just page IDs for relation properties.
 
 ## Requirements
 Before you start, make sure you have:
@@ -36,7 +37,7 @@ Make sure your `$GOBIN` is added to your system's `$PATH`, so you can run the to
 Once installed, you can use the tool from anywhere in your terminal:
 
 ```sh
-notion-csv-exporter -token={NOTION_API_TOKEN} -databaseID={NOTION_DATABASE_ID} [-sortKey={SORT_KEY}] [-order={ascending|descending}] [-columns={COLUMN1,COLUMN2,...}]
+notion-csv-exporter -token={NOTION_API_TOKEN} -databaseID={NOTION_DATABASE_ID} [-sortKey={SORT_KEY}] [-order={ascending|descending}] [-columns={COLUMN1,COLUMN2,...}] [-fetchRelationNames={true|false}]
 ```
 
 Replace:
@@ -45,6 +46,7 @@ Replace:
 - `{SORT_KEY}` with the key to sort by (optional).
 - `{ascending|descending}` with the sorting order (default is descending).
 - `{COLUMN1,COLUMN2,...}` with a comma-separated list of column names to export (optional).
+- `{true|false}` to enable or disable fetching relation names instead of page IDs (default is false).
 
 ### Example
 #### Export all columns
@@ -65,9 +67,19 @@ notion-csv-exporter -token=secret_abc12345 -databaseID=1234567890abcdef123456789
 ```
 This command sorts the exported data by the `Name` column in ascending order.
 
+#### Export with relation names
+```sh
+notion-csv-exporter -token=secret_abc12345 -databaseID=1234567890abcdef1234567890abcdef -fetchRelationNames=true
+```
+This command exports data with relation properties showing the related page names instead of just page IDs.
+
 ## Column Selection and Validation
 - If `-columns` is specified, **only those columns will be included in the output**.
 - If a column name does not exist in the Notion database, **the export will fail with an error**.
+
+## Relation Properties
+- By default, relation properties are exported as page IDs.
+- When `-fetchRelationNames=true` is specified, the exporter will fetch the title of each related page.
 
 ## How to Get Notion API Token and Database ID
 
