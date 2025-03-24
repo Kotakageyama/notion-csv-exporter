@@ -92,5 +92,18 @@ This command exports data with relation properties showing the related page name
 1. Open the Notion database in your browser.
 2. The database ID is the part of the URL between `/` and `?` or the last part after `/` if there is no query string.
 
+## Development
+Before starting development, run the following command:
+
+```sh
+make setup
+```
+
+This command will:
+- Install lefthook for pre-commit hooks to prevent accidental commits of sensitive files
+
+### Pre-commit Hooks
+This project uses [lefthook](https://github.com/evilmartians/lefthook) to manage Git hooks. The pre-commit hooks help prevent accidental commits of sensitive files.
+
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
