@@ -1,0 +1,13 @@
+pre-commit:
+  parallel: true
+  commands:
+    block-sensitive-files:
+      run: >
+        bash -c '
+        for file in {staged_files}; do
+          if [[ "$file" =~ \.(csv|xls|xlsx|pdf)$ ]]; then
+            echo "ERROR: Sensitive file detected: $file";
+            exit 1;
+          fi;
+        done'
+      exclude: '^allowed/.*\.(csv|xls|xlsx|pdf)$'
